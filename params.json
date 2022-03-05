@@ -1,0 +1,201 @@
+{
+"dataset_params" : {"dataset": "APTOS2019",
+                    "data_location" : "/path_to_data_dir",
+                    "train_transforms" : {"Resize" : {"apply" : true,
+                                                      "height" : 256,
+                                                      "width" : 256},
+                                        
+                                        "CenterCrop": {"apply" : false,
+                                                      "height" : 224,
+                                                      "width" : 224}, 
+                                        
+                                        "Normalize": true,
+                                        
+                                        "VerticalFlip" : {"apply" : true,
+                                                            "p" : 0.5},
+                                          
+                                        "HorizontalFlip" : {"apply" : true,
+                                                            "p" : 0.5},
+                                          
+                                        "RandomRotation" : {"apply" : false,
+                                                            "angle" : 5,
+                                                           "p" : 0.5}, 
+                                          
+                                        "RandomGrayscale" : {"apply" : true,
+                                                                "p" : 0.2}, 
+                                        
+                                        "RandomCrop": {"apply" : false,
+                                                      "height" : 32,
+                                                      "width" : 32,
+                                                      "padding" : 4,
+                                                      "p" : 0.5}, 
+                                        
+                                        "ColorJitter" : {"apply" : true,
+                                                        "brightness" : 0.2,
+                                                        "contrast" : 0.2,
+                                                        "saturation" : 0.1,
+                                                        "hue" : 0.1,
+                                                        "p" : 0.2},
+                                          
+                                        "RandomPerspective" : {"apply" : false,
+                                                            "distortion_scale" : 0.2,
+                                                              "p" : 0.5}, 
+    
+                                        "RandomAffine" : {"apply" : false,
+                                                              "degrees" : 5,
+                                                              "translate" : [0.1, 0.3], 
+                                                              "scale" : [0.1, 3.3],
+                                                             "shear" : 0.2,
+                                                             "p" : 0.5},
+                                          
+                                        "RandomErasing" : {"apply" : false,
+                                                              "scale" : [0.02, 0.33],
+                                                              "ratio" : [0.3, 3.3], 
+                                                              "value" : 0,
+                                                              "p" : 0.5},
+                                          
+                                        "RandomGaussianBlur" : {"apply" : false,
+                                                              "radius_min" : 0.1,
+                                                              "radius_max" : 2.0, 
+                                                              "p" : 0.2},
+                                          
+                                        "RandomSolarize" : {"apply" : false,
+                                                            "threshold" : 128,
+                                                            "p" : 0.2},                                        
+                                          
+                                        "RandomResizedCrop" : {"apply" : true,
+                                                                 "size" : 224, 
+                                                                 "scale" : [0.8, 1.2]},
+                                          
+                                        "MultiCrop" : {"apply" : false,
+                                                              "n_crops" : [2, 6],
+                                                              "sizes" : [224, 96],
+                                                              "scales" : [[0.4, 1.0], [0.05, 0.4]]}                                          
+                                         },
+                  
+                    "val_transforms" : {"Resize" : {"apply" : true,
+                                                      "height" : 256,
+                                                      "width" : 256},
+                                        
+                                        "CenterCrop": {"apply" : true,
+                                                      "height" : 224,
+                                                      "width" : 224}, 
+                                        
+                                        "Normalize": true                                        
+                                         },
+                  
+                    "test_transforms" : {"Resize" : {"apply" : true,
+                                                      "height" : 256,
+                                                      "width" : 256},
+                                        
+                                        "CenterCrop": {"apply" : true,
+                                                      "height" : 224,
+                                                      "width" : 224}, 
+                                        
+                                        "Normalize": true                                       
+                                         }
+                  },
+
+"dataloader_params" : {"trainloader" : {"batch_size" : 64, 
+                                        "num_workers" : 4,
+                                        "prefetch_factor" : 4,
+                                        "shuffle": true, 
+                                        "pin_memory" : true, 
+                                        "drop_last" : true, 
+                                        "persistent_workers" : true},
+                       "valloader" : {"batch_size" : 64, 
+                                        "num_workers" : 4,
+                                        "prefetch_factor" : 4,
+                                        "shuffle": false, 
+                                        "pin_memory" : true, 
+                                        "drop_last" : false, 
+                                        "persistent_workers" : true},
+                       "testloader" : {"batch_size" : 64, 
+                                        "num_workers" : 4,
+                                        "prefetch_factor" : 4,
+                                        "shuffle": false, 
+                                        "pin_memory" : true, 
+                                        "drop_last" : false, 
+                                        "persistent_workers" : false}
+                  },
+    
+"model_params" : {"backbone_type": "deit_small",
+                  "cnn_params" : {"pretrained_type" : "supervised"},                  
+                  "transformers_params" : {"img_size" : [224],
+                                           "patch_size" : 16,
+                                           "pretrained_type" : "supervised",
+                                           "is_memory_efficient" : true},
+                  "pretrained" : true,
+                  "wtst_init": {"apply" : true,
+                                       "transfer_up_to_layer": -2},                  
+                  "freeze_backbone" : false
+                  },
+    
+"optimization_params" : {
+    "default" : {"optimizer" : {
+                    "type" : "Adam",
+                    "autoscale_lr": false,        
+                    "params" : {"lr" : 1e-4,
+                                "weight_decay" : 1e-5}
+                            },
+                "LARS_params" : {"use": false,
+                                "batch_act_thresh" : 256,
+                                "eps" : 1e-8,
+                                "trust_coef" : 0.001},
+                "scheduler" : {
+                    "type" : ["LinearWarmup", "ReduceLROnPlateau"],
+                    "params" : {"ReduceLROnPlateau" : {"mode" : "max",
+                                                    "factor" : 0.1,
+                                                    "patience" : 3, 
+                                                    "verbose" : true},
+                                "OneCycleLR" : {"anneal_strategy" : "linear",
+                                               "final_div_factor": 1e-4},
+                                "MultiStepLR" : {"milestones": [7], 
+                                                 "gamma" : 0.1},
+                                "CosineAnnealingLR" : {"eta_min":1e-6}, 
+                                "LinearWarmup" : {"warmup_epochs":0,
+                                                  "warmup_iters":1000}                                   
+                               }
+    
+                            }
+                   }  
+            },
+
+        
+
+"training_params" : {"model_name" : "define_the_model_name",    
+                    "epochs" : 2,            
+                    "val_every" : 0.5,        
+                    "log_every" : 25,           
+                    "save_best_model": true,                     
+                    "log_embeddings" : false,
+                    "knn_eval": false, 
+                    "grad_clipping" : 1.0,
+                    "restore_session" : false,
+                    "restore_only_model": false,
+                    "use_tensorboard" : false,
+                    "use_mixed_precision" : false,
+                    "save_dir" : "/path_to_save_dir"                     
+                  },
+    
+"system_params" : {"use_all_GPUs" : false,
+                   "which_GPUs": "0",
+                   "use_GPU" : true
+                  },
+    
+"log_params" : {"project_name" : "the_name_of_the_project",
+                "run_name": "DEFINED_BY_MODEL_NAME"
+                },
+    
+"lr_finder" : {"type": "grid_search",
+                       "grid_search_params": {"min_pow" : -5, 
+                                            "max_pow" : -2, 
+                                            "resolution" : 25, 
+                                            "n_epochs" : 5, 
+                                            "random_lr" : false,
+                                            "keep_schedule" : false,
+                                            "report_intermediate_steps" : false
+                                             }
+            }
+}
+
